@@ -11,7 +11,7 @@ if load_dotenv(".env"):
 else:
     OPENAI_KEY = st.secrets["OPENAI_API_KEY"]
 
-
+FILEPATH_COURSES_FULL = "./data/courses-full.json"
 # Pass the API Key to the OpenAI Client
 client = OpenAI(api_key=OPENAI_KEY)
 
