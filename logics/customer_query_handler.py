@@ -1,7 +1,6 @@
-import os
 import json
-import openai
 from helper_functions import llm
+
 
 category_n_course_name = {
     "Programming and Development": [
@@ -29,12 +28,6 @@ category_n_course_name = {
     "Design": ["Graphic Design Essentials", "UI/UX Design Fundamentals"],
 }
 
-# Load the JSON file
-filepath = "./data/courses-full.json"
-with open(filepath, "r") as file:
-    json_string = file.read()
-    dict_of_courses = json.loads(json_string)
-
 
 def identify_category_and_courses(user_message):
     delimiter = "####"
@@ -45,12 +38,13 @@ def identify_category_and_courses(user_message):
     the pair of {delimiter}.
 
     Decide if the query is relevant to any specific courses
-    in the Python dictionary below, which each key is a `category`
+    in the Python dictionary below, in which each key is a `category`
     and the value is a list of `course_name`.
 
-    If there are any relevant course(s) found, output the pair(s) of a) `course_name` the relevant courses and b) the associated `category` into a
-    list of dictionary object, where each item in the list is a relevant course
-    and each course is a dictionary that contains two keys:
+    If there are any relevant course(s) found, output the pair(s) of a) `course_name` 
+    the relevant courses and b) the associated `category` into a list of dictionary 
+    object, where each item in the list is a relevant course and each course is a 
+    dictionary that contains two keys:
     1) category
     2) course_name
 
@@ -74,9 +68,17 @@ def identify_category_and_courses(user_message):
     return category_and_product_response
 
 
-def get_course_details(list_of_relevant_category_n_course: list[dict]):
+# filepath = "./data/courses-full.json"
+
+with open(llm.FILEPATH_COURSES_FULL, "r") as file:
+    json_string = file.read()
+    dict_of_courses = json.loads(json_string)
+
+
+def get_course_details(list_of_category_n_course: list[dict]):
     course_names_list = []
-    for x in list_of_relevant_category_n_course:
+    for x in list_of_category_n_course:
+        # for x in category_and_product_response:
         course_names_list.append(x.get("course_name"))  # x["course_name"]
 
     list_of_course_details = []
@@ -108,14 +110,14 @@ def generate_response_based_on_course_details(user_message, product_details):
     Your response should be comprehensive and informative to help the \
     the customers to make their decision.
     Complete with details such rating, pricing, and skills to be learnt.
-    Use Neural Linguistic Programming to construct your response. Do not end with {delimiter}.
+    Use Neural Linguistic Programming to construct your response.
 
     Use the following format:
     Step 1:{delimiter} <step 1 reasoning>
     Step 2:{delimiter} <step 2 reasoning>
     Step 3:{delimiter} <step 3 response to customer>
 
-    Make sure to include {delimiter} to separate every step.
+    Make sure to include {delimiter} to separate every step. Do not end with {delimiter}.
     """
 
     messages = [
@@ -124,21 +126,25 @@ def generate_response_based_on_course_details(user_message, product_details):
     ]
 
     response_to_customer = llm.get_completion_by_messages(messages)
+
     response_to_customer = response_to_customer.split(delimiter)[-1]
+
     return response_to_customer
 
 
 def process_user_message(user_input):
-    delimiter = "```"
+    print(user_input)
 
     # Process 1: If Courses are found, look them up
     category_n_course_name = identify_category_and_courses(user_input)
-    print("category_n_course_name : ", category_n_course_name)
+    # print("category_n_course_name : ", category_n_course_name)
 
     # Process 2: Get the Course Details
     course_details = get_course_details(category_n_course_name)
+    # print(course_details)
 
     # Process 3: Generate Response based on Course Details
     reply = generate_response_based_on_course_details(user_input, course_details)
+    # print(reply)
 
     return reply, course_details
